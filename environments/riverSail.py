@@ -21,15 +21,15 @@ def categorical_sample(prob_n, np_random):
     csprob_n = np.cumsum(prob_n)
     return (csprob_n > np_random.rand()).argmax()
 
-def riverSailMap(Y):
-    maze = np.full((3,Y), 1.)
+def riverSailMap(X):
+    maze = np.full((3, X), 1.)
     return maze
 
-# Upgrade of the previous class, walls are no longer visible as unaccessible states for the learner (they're no longer exisiting for the learner).
-class riverSail(environments.discreteMDP.DiscreteMDP):
+
+class RiverSail(environments.discreteMDP.DiscreteMDP):
     metadata = {'render.modes': ['text', 'ansi', 'pylab', 'maze'], 'maps': ['random', '2-room', '4-room']}
 
-    def __init__(self, sizeX, slippery=0.1, initialSingleStateDistribution=False,seed=None):
+    def __init__(self, sizeX, slippery=0.1, initialSingleStateDistribution=False, seed=None):
         """
 
         :param sizeX: length of the 2-d grid
@@ -38,20 +38,18 @@ class riverSail(environments.discreteMDP.DiscreteMDP):
         :param slippery: real-value in [0,1], makes transitions more (1) or less (0) stochastic.
         :param nbGoals: number og goal states to be generated
         :param rewardStd: standard deviation of rewards.
-        :param density: density of walls (for random map)
-        :param lengthofwalks: average lengh of walls (for random map)
         :param initialSingleStateDistribution: True: the initial distribution is a Dirac at one state, chosen uniformly randomly amongts valid non-goal states; False: initial Distribution is uniform random amongst non-goal states.
-        :param seed:
+        :param seed: seed for reproducibillity purpose
         """
 
         # desc = maps[map_name]
-        self.sizeY, self.sizeX = sizeX, 3
+        self.sizeX, self.sizeY = sizeX, 3
         self.reward_range = (0, 1)
         self.rewardStd = 0.
         self.map_name='riversail'
 
         self.nA = 4
-        self.nS_all = self.sizeX * self.sizeY
+        self.nS_all = self.sizeY * self.sizeX
         self.nameActions = ["Up", "Down", "Left", "Right"]
 
 
@@ -67,13 +65,13 @@ class riverSail(environments.discreteMDP.DiscreteMDP):
                         [1. - 3 * slip, slip, 0., slip, slip],  # left
                         [0., slip, 1. - 3 * slip, slip, slip]]  # right
 
-        self.maze = riverSailMap(self.sizeY)
+        self.maze = riverSailMap(self.sizeX)
 
         self.mapping = []
         self.revmapping = []#np.zeros(sizeX*sizeY)
         cpt=0
-        for x in range(self.sizeX):
-            for y in range(self.sizeY):
+        for x in range(self.sizeY):
+            for y in range(self.sizeX):
                 xy = self.to_s((x, y))
                 if self.maze[x, y] >= 1:
                     self.mapping.append(xy)
@@ -116,10 +114,10 @@ class riverSail(environments.discreteMDP.DiscreteMDP):
         self.reset()
 
     def to_s(self, rowcol):
-        return rowcol[0] * self.sizeY + rowcol[1]
+        return rowcol[0] * self.sizeX + rowcol[1]
 
     def from_s(self, s):
-        return s // self.sizeY, s % self.sizeY
+        return s // self.sizeX, s % self.sizeX
 
     def step(self, a):
         transitions = self.P[self.s][a]
@@ -140,7 +138,7 @@ class riverSail(environments.discreteMDP.DiscreteMDP):
 
     def makeGoalStates(self):
         goalstates = []
-        s =  [1, self.sizeY - 1]
+        s =  [1, self.sizeX - 1]
         goalstates.append(self.revmapping[self.to_s(s)])
         self.maze[s[0]][s[1]] = 2.
         return goalstates
@@ -148,7 +146,7 @@ class riverSail(environments.discreteMDP.DiscreteMDP):
     def makeInitialSingleStateDistribution(self, maze):
         xy = [1, 1]  # [np.random.randint(self.sizeX), np.random.randint(self.sizeY)]
         while (self.maze[xy[0]][xy[1]] != 1):
-            xy = [self.np_random.randint(self.sizeX), self.np_random.randint(self.sizeY)]
+            xy = [self.np_random.randint(self.sizeY), self.np_random.randint(self.sizeX)]
         isd = np.zeros(self.nS)
         isd[self.revmapping[self.to_s(xy)]] = 1.
         return isd
@@ -162,8 +160,8 @@ class riverSail(environments.discreteMDP.DiscreteMDP):
         return isd
 
     def makeTransition(self, initialstatedistribution):
-        X = self.sizeX
-        Y = self.sizeY
+        X = self.sizeY
+        Y = self.sizeX
         P = {s: {a: [] for a in range(self.nA)} for s in range(self.nS)}
 
         for s in range(self.nS):
@@ -247,7 +245,7 @@ class riverSail(environments.discreteMDP.DiscreteMDP):
             if mode != 'text':
                 return outfile
         else:
-            super(riverSail, self).render(mode)
+            super(RiverSail, self).render(mode)
 
     def initRender(self):
         if (self.rendermode == 'maze'):
@@ -258,4 +256,4 @@ class riverSail(environments.discreteMDP.DiscreteMDP):
             plt.show(block=False)
             plt.pause(0.5)
         else:
-            super(riverSail, self).initRender()
+            super(RiverSail, self).initRender()
