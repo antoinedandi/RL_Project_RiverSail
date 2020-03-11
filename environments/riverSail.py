@@ -247,7 +247,7 @@ class riverSail(environments.discreteMDP.DiscreteMDP):
             if mode != 'text':
                 return outfile
         else:
-            super(GridWorld, self).render(mode)
+            super(riverSail, self).render(mode)
 
     def initRender(self):
         if (self.rendermode == 'maze'):
@@ -258,4 +258,4 @@ class riverSail(environments.discreteMDP.DiscreteMDP):
             plt.show(block=False)
             plt.pause(0.5)
         else:
-            super(GridWorld, self).initRender()
+            super(riverSail, self).initRender()
