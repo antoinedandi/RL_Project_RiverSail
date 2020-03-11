@@ -390,13 +390,19 @@ def demo_animate():
     # # learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
     # animate(env, learner, 100, 'pylab')
     #
-    testName = 'random_grid'
+    # testName = 'random_grid'
+    # envName = (bW.registerWorlds[testName])(0)
+    # env = bW.makeWorld(envName)
+    # # learner = lr.Random(env)
+    # learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
+    # animate(env, learner, 50, 'maze')
+    #
+    testName = 'riversail'
     envName = (bW.registerWorlds[testName])(0)
     env = bW.makeWorld(envName)
     # learner = lr.Random(env)
     learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
     animate(env, learner, 50, 'maze')
-    #
     #
     # testName = 'random10'
     # envName = (bW.registerWorlds[testName])(0)

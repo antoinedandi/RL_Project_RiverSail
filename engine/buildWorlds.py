@@ -53,6 +53,17 @@ def registerThreeState(delta = 0.005, max_steps=np.infty, reward_threshold=np.in
     return 'ThreeState-v0'
 
 
+def registerRiverSail(sizeX=10, initialSingleStateDistribution=False, max_steps=np.infty, reward_threshold=np.infty):
+    register(
+        id='RiverSail-'+'-v0',
+        entry_point='environments.riverSail:riverSail',
+        max_episode_steps=max_steps,
+        reward_threshold=reward_threshold,
+        kwargs={'sizeX': sizeX, 'initialSingleStateDistribution':initialSingleStateDistribution}
+    )
+    return 'RiverSail-'+'-v0'
+
+
 registerWorlds = {
     "random10" : lambda x: registerRandomMDP(nbStates=10, nbActions=3, maxProportionSupportTransition=0.1, maxProportionSupportReward=0.1, maxProportionSupportStart=0.1, minNonZeroProbability=0.15, minNonZeroReward=0.3, rewardStd=0.1,seed=10),
     "random100" : lambda x: registerRandomMDP(nbStates=100, nbActions=3, maxProportionSupportTransition=0.1, maxProportionSupportReward=0.1, maxProportionSupportStart=0.1, minNonZeroProbability=0.15, minNonZeroReward=0.3, rewardStd=0.1,seed=10),
@@ -61,7 +72,8 @@ registerWorlds = {
     "riverSwim25" : lambda x: registerRiverSwim(nbStates=25, rightProbaright=0.4, rightProbaLeft=0.05, rewardL=0.005, rewardR=1.),
     "random_grid" : lambda x: registerGridworld(sizeX=8, sizeY=5, map_name="random", rewardStd=0.01, initialSingleStateDistribution=True),
     "2-room" : lambda x: registerGridworld(sizeX=9, sizeY=11, map_name="2-room", rewardStd=0.0, initialSingleStateDistribution=True),
-    "4-room" : lambda x: registerGridworld(sizeX=7, sizeY=7, map_name="4-room", rewardStd=0.0, initialSingleStateDistribution=True)
+    "4-room" : lambda x: registerGridworld(sizeX=7, sizeY=7, map_name="4-room", rewardStd=0.0, initialSingleStateDistribution=True),
+    "riversail" : lambda x: registerRiverSail(sizeX=10, initialSingleStateDistribution=True)
 }
 
 
