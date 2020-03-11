@@ -1,5 +1,4 @@
 import numpy as np
-
 import sys
 from six import StringIO
 from gym import Env, spaces
@@ -10,11 +9,6 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from matplotlib.patches import FancyArrowPatch, Circle
 import string
-
-import pydot
-import graphviz
-import os
-# os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
 
 
 def categorical_sample(prob_n, np_random):
