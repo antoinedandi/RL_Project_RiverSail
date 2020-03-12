@@ -84,7 +84,7 @@ class DiscreteMDP(Env):
 
         :param a: action
         :return:  (state, reward, IsDone?, meanreward)
-        The meanreward is returned for information, it shold not begiven to the learner.
+        The meanreward is returned for information, it should not be given to the learner.
         """
         transitions = self.P[self.s][a]
         rewarddis = self.R[self.s][a]
@@ -499,11 +499,11 @@ class RiverSwim(DiscreteMDP):
 
         super(RiverSwim, self).__init__(self.nS, self.nA, self.P,  self.rewards, self.startdistribution)
     
-    
-    
-    
-    
-    
+
+
+
+
+
 class ThreeState(DiscreteMDP):
     def __init__(self, delta = 0.005, fixed_reward = True):
         self.nS = 3
@@ -590,5 +590,5 @@ class ThreeState(DiscreteMDP):
          
         #print("Rewards : ", self.rewards, "\nTransitions : ", self.transitions)
         super(ThreeState, self).__init__(self.nS, self.nA, self.P,  self.rewards, self.startdistribution)
-        
-        
+
+

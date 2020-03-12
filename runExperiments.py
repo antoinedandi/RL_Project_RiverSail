@@ -218,6 +218,8 @@ def multicoreXpsNoRender(envName,learner,nbReplicates,timeHorizon):
 
 def starOneXpWithDump(args):
     return oneXpNoRenderWithDump(*args)
+
+
 def multicoreXpsNoRenderWithDump(envName,learner,nbReplicates,timeHorizon):
     num_cores = multiprocessing.cpu_count()
     envs = []
@@ -401,9 +403,9 @@ def demo_animate():
     envName = (bW.registerWorlds[testName])(0)
     env = bW.makeWorld(envName)
     # learner = lr.Random(env)
-    learner = lh.Human(env)
-    # learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
-    animate(env, learner, 50, 'maze')
+    # learner = lh.Human(env)
+    learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
+    animate(env, learner, 100, 'maze')
     #
     # testName = 'random10'
     # envName = (bW.registerWorlds[testName])(0)
