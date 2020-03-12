@@ -401,7 +401,8 @@ def demo_animate():
     envName = (bW.registerWorlds[testName])(0)
     env = bW.makeWorld(envName)
     # learner = lr.Random(env)
-    learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
+    learner = lh.Human(env)
+    # learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
     animate(env, learner, 50, 'maze')
     #
     # testName = 'random10'

@@ -29,14 +29,11 @@ def riverSailMap(X):
 class RiverSail(environments.discreteMDP.DiscreteMDP):
     metadata = {'render.modes': ['text', 'ansi', 'pylab', 'maze'], 'maps': ['random', '2-room', '4-room']}
 
-    def __init__(self, sizeX, slippery=0.1, initialSingleStateDistribution=False, seed=None):
+    def __init__(self, sizeX, wind=0.1, initialSingleStateDistribution=False, seed=None):
         """
 
         :param sizeX: length of the 2-d grid
-        :param sizeY: height of the 2-d grid
-        :param map_name: random, 2-room or 4-room
-        :param slippery: real-value in [0,1], makes transitions more (1) or less (0) stochastic.
-        :param nbGoals: number og goal states to be generated
+        :param wind: real-value in [0,1], wind force - makes transitions more (1) or less (0) stochastic.
         :param rewardStd: standard deviation of rewards.
         :param initialSingleStateDistribution: True: the initial distribution is a Dirac at one state, chosen uniformly randomly amongts valid non-goal states; False: initial Distribution is uniform random amongst non-goal states.
         :param seed: seed for reproducibillity purpose
@@ -45,30 +42,27 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
         # desc = maps[map_name]
         self.sizeX, self.sizeY = sizeX, 3
         self.reward_range = (0, 1)
-        self.rewardStd = 0.
+        self.rewardStd = 0.                  # TODO : is this useful ??
         self.map_name='riversail'
 
         self.nA = 4
         self.nS_all = self.sizeY * self.sizeX
-        self.nameActions = ["Up", "Down", "Left", "Right"]
-
+        self.nameActions = ["up", "down", "left", "right"]
 
         self.seed(seed)
-        self.initializedRender = False
+        self.initializedRender = False       # TODO : is this useful ??
 
-
-        """ A modifier pour faire le VENT """
+        # TODO : A modifier pour faire le VENT
         # stochastic transitions
-        slip = min(slippery, 1. / 3.)
-        self.massmap = [[slip, 1. - 3 * slip, slip, 0., slip],  # up : up down left right stay
-                        [slip, 0., slip, 1. - 3 * slip, slip],  # down
-                        [1. - 3 * slip, slip, 0., slip, slip],  # left
-                        [0., slip, 1. - 3 * slip, slip, slip]]  # right
+        self.massmap = [[1. - 3 * wind, 0., wind, wind, wind],  # up     : up down left right stay
+                        [0., 1. - 3 * wind, wind, wind, wind],  # down
+                        [wind, wind, 1. - 3 * wind, 0., wind],  # left
+                        [wind, wind, 0., 1. - 3 * wind, wind]]  # right
 
         self.maze = riverSailMap(self.sizeX)
 
         self.mapping = []
-        self.revmapping = []#np.zeros(sizeX*sizeY)
+        self.revmapping = []  #np.zeros(sizeX*sizeY)
         cpt=0
         for x in range(self.sizeY):
             for y in range(self.sizeX):
@@ -86,6 +80,7 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
         self.action_space = spaces.Discrete(self.nA)
         self.observation_space = spaces.Discrete(self.nS)
 
+        # Define the state that will lead to a reward
         self.goalstates = self.makeGoalStates()
         
         if (initialSingleStateDistribution):
@@ -103,7 +98,6 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
 
         self.states = range(0, self.nS)
         self.actions = range(0, self.nA)
-        self.nameActions = list(string.ascii_uppercase)[0:min(self.nA, 26)]
 
         self.reward_range = (0, 1)
         self.action_space = spaces.Discrete(self.nA)
@@ -138,7 +132,7 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
 
     def makeGoalStates(self):
         goalstates = []
-        s =  [1, self.sizeX - 1]
+        s = [1, self.sizeX - 1]
         goalstates.append(self.revmapping[self.to_s(s)])
         self.maze[s[0]][s[1]] = 2.
         return goalstates
@@ -160,34 +154,37 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
         return isd
 
     def makeTransition(self, initialstatedistribution):
-        X = self.sizeY
-        Y = self.sizeX
+        X = self.sizeX
+        Y = self.sizeY
+        # P: Transitions (P : (S x A x S) -> [0,1])
         P = {s: {a: [] for a in range(self.nA)} for s in range(self.nS)}
 
         for s in range(self.nS):
-            x, y = self.from_s(self.mapping[s])
-            if (self.maze[x][y] == 2.):
+            y, x = self.from_s(self.mapping[s])
+            if (self.maze[y][x] == 2.):  # reached goal stage
                 for a in range(self.nA):
                     li = P[s][a]
                     for ns in range(self.nS):
                         if (initialstatedistribution[ns] > 0):
                             li.append((initialstatedistribution[ns], ns, False))
             else:
-                us = [max((x - 1), 0), y % Y]
-                ds = [min((x + 1), X -1), y % Y]
-                ls = [x % X, max(y - 1, 0) ]
-                rs = [x % X, min(y + 1, Y-1) ]
-                ss = [x, y]
-                if (self.maze[us[0]][us[1]] <= 0 or self.maze[x][y] <= 0): us = ss
-                if (self.maze[ds[0]][ds[1]] <= 0 or self.maze[x][y] <= 0): ds = ss
-                if (self.maze[ls[0]][ls[1]] <= 0 or self.maze[x][y] <= 0): ls = ss
-                if (self.maze[rs[0]][rs[1]] <= 0 or self.maze[x][y] <= 0): rs = ss
+                # Get neighbouring states
+                us = [max((y - 1), 0), x % X]
+                ds = [min((y + 1), Y - 1), x % X]
+                ls = [y % Y, max(x - 1, 0)]
+                rs = [y % Y, min(x + 1, X-1)]
+                ss = [y, x]
+                # TODO : useless if statements because there are no wall
+                if (self.maze[us[0]][us[1]] <= 0 or self.maze[y][x] <= 0): us = ss
+                if (self.maze[ds[0]][ds[1]] <= 0 or self.maze[y][x] <= 0): ds = ss
+                if (self.maze[ls[0]][ls[1]] <= 0 or self.maze[y][x] <= 0): ls = ss
+                if (self.maze[rs[0]][rs[1]] <= 0 or self.maze[y][x] <= 0): rs = ss
                 for a in range(self.nA):
                     li = P[s][a]
-                    li.append((self.massmap[a][0], self.revmapping[self.to_s(ls)], False))
-                    li.append((self.massmap[a][1], self.revmapping[self.to_s(us)], False))
-                    li.append((self.massmap[a][2], self.revmapping[self.to_s(rs)], False))
-                    li.append((self.massmap[a][3], self.revmapping[self.to_s(ds)], False))
+                    li.append((self.massmap[a][0], self.revmapping[self.to_s(us)], False))
+                    li.append((self.massmap[a][1], self.revmapping[self.to_s(ds)], False))
+                    li.append((self.massmap[a][2], self.revmapping[self.to_s(ls)], False))
+                    li.append((self.massmap[a][3], self.revmapping[self.to_s(rs)], False))
                     li.append((self.massmap[a][4], self.revmapping[self.to_s(ss)], False))
 
         return P
