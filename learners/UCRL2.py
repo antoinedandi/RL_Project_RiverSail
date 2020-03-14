@@ -4,8 +4,8 @@ import copy as cp
 from learners.utils import *
 
 
-class UCRL2:
-    def __init__(self, nS, nA, delta):
+class C_UCRL2_:
+    def __init__(self, nS, nA, classes, nC, sigma, delta):
         """
         Vanilla UCRL2 based on "Jaksch, Thomas, Ronald Ortner, and Peter Auer. "Near-optimal regret bounds for reinforcement learning." Journal of Machine Learning Research 11.Apr (2010): 1563-1600."
         :param nS: the number of states
@@ -14,12 +14,19 @@ class UCRL2:
         """
         self.nS = nS
         self.nA = nA
+        self.nC = nC
         self.t = 1
         self.delta = delta
+        self.sigma = sigma
+        self.classes = classes
 
         self.observations = [[], [], []] # list of the observed (states, actions, rewards) ordered by time
         self.vk = np.zeros((self.nS, self.nA)) #the state-action count for the current episode k
         self.Nk = np.zeros((self.nS, self.nA)) #the state-action count prior to episode k
+
+        self.ClassNk = np.zeros(self.nC)
+        self.PNL = np.zeros((nS, nC))
+        self.ClassVk = np.zeros(self.nc)
 
         self.r_distances = np.zeros((self.nS, self.nA))
         self.p_distances = np.zeros((self.nS, self.nA))
@@ -41,6 +48,11 @@ class UCRL2:
         for s in range(self.nS):
             for a in range(self.nA):
                 self.Nk[s, a] += self.vk[s, a]
+                
+        # Auxiliary function to update N the current state-action count.
+    def updateClassN(self):
+        for c in range(self.nC):
+            self.ClassNk[c] += self.ClassVk[c]
 
     # Auxiliary function to update R the accumulated reward.
     def updateR(self):
@@ -73,6 +85,21 @@ class UCRL2:
                 max_p[sorted_indices[l]] = max([0, 1 - sum(max_p) + max_p[sorted_indices[l]]])  # Error?
                 l += 1
         return max_p
+    
+    # Computing the maximum proba in the Extended Value Iteration for given vlass c.
+    def class_max_proba(self, p_estimate, sorted_indices, sigma, c):
+        min1 = min([1, p_estimate[s, a, sorted_indices[-1]] + (self.p_distances[s, a] / 2)])
+        max_p = np.zeros(self.nS)
+        if min1 == 1:
+            max_p[sorted_indices[-1]] = 1
+        else:
+            max_p = cp.deepcopy(p_estimate[s, a])
+            max_p[sorted_indices[-1]] += self.p_distances[s, a] / 2
+            l = 0
+            while sum(max_p) > 1:
+                max_p[sorted_indices[l]] = max([0, 1 - sum(max_p) + max_p[sorted_indices[l]]])  # Error?
+                l += 1
+        return max_p
 
     # The Extend Value Iteration algorithm (approximated with precision epsilon), in parallel policy updated with the greedy one.
     def EVI(self, r_estimate, p_estimate, epsilon=0.01, max_iter=1000):
@@ -83,7 +110,6 @@ class UCRL2:
         while True:
             niter += 1
             for s in range(self.nS):
-
                 temp = np.zeros(self.nA)
                 for a in range(self.nA):
                     max_p = self.max_proba(p_estimate, sorted_indices, s, a)
@@ -113,15 +139,23 @@ class UCRL2:
     # To start a new episode (init var, computes estmates and run EVI).
     def new_episode(self):
         self.updateN()
+        self.updateClassN()
         self.vk = np.zeros((self.nS, self.nA))
+        self.ClassVk = np.zeros(self.nC)
         r_estimate = np.zeros((self.nS, self.nA))
         p_estimate = np.zeros((self.nS, self.nA, self.nS))
-        for s in range(self.nS):
-            for a in range(self.nA):
-                div = max([1, self.Nk[s, a]])
-                r_estimate[s, a] = self.Rk[s, a] / div
-                for next_s in range(self.nS):
-                    p_estimate[s, a, next_s] = self.Pk[s, a, next_s] / div
+        
+        Class_p_estimate = np.zeros((self.nS, self.nC))
+#        for s in range(self.nS):
+#            for a in range(self.nA):
+#                div = max([1, self.Nk[s, a]])
+#                r_estimate[s, a] = self.Rk[s, a] / div
+#                for next_s in range(self.nS):
+#                    p_estimate[s, a, next_s] = self.Pk[s, a, next_s] / div
+        for c in range(self.nC):
+            for s, a in classes[self.classes[c]]:
+                Class_p_estimate[c] = np.sum(self.Pk[self.sigma[s, a]])  / max(1, self.ClassNk[c])
+            
         self.distances()
         self.EVI(r_estimate, p_estimate, epsilon=1. / max(1, self.t))
 
@@ -157,6 +191,9 @@ class UCRL2:
         self.updateP()
         self.updateR()
         self.t += 1
+        
+        
+
 
 # This "UCRL2" algorithm is a slight modfication of UCRL2. the idea is to add some forced exploration trying all the unknown action in every state befor starting the optimism phase,
 # and to run a random policy in unknown states.
