@@ -85,7 +85,7 @@ def oneXpNoRenderWithDump(env,envname,learner,timeHorizon):
     cumrewards = []
     cummean = 0.
     cummeans = []
-    print("New initialization of ", learner.name(), ' for environment ',envname)
+    print("New initialization of ", learner.name(), ' for environment ', envname)
     print("Initial state:" + str(observation))
     for t in range(timeHorizon):
         state = observation
@@ -128,27 +128,30 @@ def run_large_exp(envName = "riverSwim", timeHorizon=1000, nbReplicates=100):
         envName= regName
 
     envOpt = bW.makeWorld(envName)
-    if ("2-room" in envName):
-         opti_learner = opt.Opti_911_2room(envOpt.env)
-         # opttimeHorizon = min(max((10000, timeHorizon)), 10 ** 8)
-         # optl = le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05)
-         # cumReward_opti = oneXpNoRender(envOpt, envName, optl, opttimeHorizon)
-         # print(optl.policy)
-         # opti_learner = opt.Opti_learner(envOpt.env, envOpt.observation_space.n, envOpt.action_space.n)
-         # #print(opti_learner.policy)
-         # opti_learner.policy = optl.policy
-    elif ("4-room" in envName):
-         opti_learner = opt.Opti_77_4room(envOpt.env)
-    #     opttimeHorizon = min(max((10000, timeHorizon)), 10 ** 8)
-    #     optl = le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05)
-    #     cumReward_opti = oneXpNoRender(envOpt, envName,optl, opttimeHorizon)
-    #     print(optl.policy)
-    #     opti_learner = opt.Opti_learner(envOpt.env, envOpt.observation_space.n, envOpt.action_space.n)
-    #     #print(opti_learner.policy)
-    #     opti_learner.policy = optl.policy
-    else:
-        print("Computing an estimate of the optimal policy (for regret)...")
-        opti_learner = opt.Opti_controller(envOpt.env, envOpt.observation_space.n, envOpt.action_space.n)
+
+    # TODO ca on s'en balec
+    # if ("2-room" in envName):
+    #      opti_learner = opt.Opti_911_2room(envOpt.env)
+    #      # opttimeHorizon = min(max((10000, timeHorizon)), 10 ** 8)
+    #      # optl = le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05)
+    #      # cumReward_opti = oneXpNoRender(envOpt, envName, optl, opttimeHorizon)
+    #      # print(optl.policy)
+    #      # opti_learner = opt.Opti_learner(envOpt.env, envOpt.observation_space.n, envOpt.action_space.n)
+    #      # #print(opti_learner.policy)
+    #      # opti_learner.policy = optl.policy
+    # elif ("4-room" in envName):
+    #      opti_learner = opt.Opti_77_4room(envOpt.env)
+    # #     opttimeHorizon = min(max((10000, timeHorizon)), 10 ** 8)
+    # #     optl = le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05)
+    # #     cumReward_opti = oneXpNoRender(envOpt, envName,optl, opttimeHorizon)
+    # #     print(optl.policy)
+    # #     opti_learner = opt.Opti_learner(envOpt.env, envOpt.observation_space.n, envOpt.action_space.n)
+    # #     #print(opti_learner.policy)
+    # #     opti_learner.policy = optl.policy
+    # else:
+
+    print("Computing an estimate of the optimal policy (for regret)...")
+    opti_learner = opt.Opti_controller(envOpt.env, envOpt.observation_space.n, envOpt.action_space.n)
     print(opti_learner.policy)
 
 
@@ -162,9 +165,9 @@ def run_large_exp(envName = "riverSwim", timeHorizon=1000, nbReplicates=100):
 
     learners.append(ucrl.UCRL2(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
     learners.append(ucrlb.UCRL2B(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
-    #learners.append(klucrl.KL_UCRL(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
+    # learners.append(klucrl.KL_UCRL(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
     learners.append(le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
-    #learners.append(lr.Random(envOpt))
+    # learners.append(lr.Random(envOpt))
 
 
     for learner in learners:
@@ -194,6 +197,8 @@ def run_large_exp(envName = "riverSwim", timeHorizon=1000, nbReplicates=100):
 
 def starOneXp(args):
     return oneXpNoRender(*args)
+
+
 def multicoreXpsNoRender(envName,learner,nbReplicates,timeHorizon):
     num_cores = multiprocessing.cpu_count()
     envs = []
@@ -220,10 +225,10 @@ def starOneXpWithDump(args):
     return oneXpNoRenderWithDump(*args)
 
 
-def multicoreXpsNoRenderWithDump(envName,learner,nbReplicates,timeHorizon):
+def multicoreXpsNoRenderWithDump(envName, learner, nbReplicates, timeHorizon):
     num_cores = multiprocessing.cpu_count()
     envs = []
-    envnames=[]
+    envnames = []
     learners = []
     timeHorizons = []
 
@@ -425,17 +430,17 @@ def demo_animate():
 #######################
 # Animate a few MDPs:
 #######################
-demo_animate()
+# demo_animate()
 
 
 #######################
 # Running a full example on a very short horizon:
 #######################
-#run_large_exp('riverSwim6', timeHorizon=1000, nbReplicates=5)
+run_large_exp('riversail', timeHorizon=1000, nbReplicates=5)
 
 # Running a full example:
+# run_large_exp('riversail', timeHorizon=1000000, nbReplicates=50)
 # run_large_exp('riverSwim6', timeHorizon=1000000, nbReplicates=50)
-# run_large_exp('riverSwim25', timeHorizon=1000000, nbReplicates=50)
 # run_large_exp('2-room', timeHorizon=10000000, nbReplicates=50)
 # run_large_exp('4-room', timeHorizon=10000000, nbReplicates=50)
 # run_large_exp('random100', timeHorizon=10000000, nbReplicates=50)
@@ -449,5 +454,5 @@ demo_animate()
 #cumRegret_Gridworld-2-room-v0_UCRL3_10000000
 #Choose tplot<=tmax=10000000
 #######################
-#tplot=10000000
-#plot_results_from_dump('4-room',tmax=10000000,tplot=tplot)
+# tplot=10000000
+# plot_results_from_dump('4-room',tmax=10000000,tplot=tplot)

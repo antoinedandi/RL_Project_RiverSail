@@ -91,10 +91,11 @@ class Opti_controller:
                 break
             elif itera > max_iter:
                 self.u = u1-min(u1)
-                print("No convergence in VI at time ", self.t, " before ", max_iter, " iterations.")
+                # print("No convergence in VI at time ", self.t, " before ", max_iter, " iterations.")
+                print("No convergence in VI before ", max_iter, " iterations.")
                 break
             else:
-                u0 = u1- min(u1)
+                u0 = u1 - min(u1)
                 u1 = np.zeros(self.nS)
                 itera += 1
 

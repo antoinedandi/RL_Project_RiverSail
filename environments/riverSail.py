@@ -155,7 +155,6 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
 
     def change_river_and_wind(self):
         # new river means new wind direction
-        print('updating wind direction')
         self.wind_direction = random.choice(range(len(self.directions)))
         self.massmap = [0., 0., 0., 0., 0., 0., 0., 0., 1-self.wind]    # u_ ur _r dr d_ dl _l ul stay
         self.massmap[self.wind_direction] += self.wind
