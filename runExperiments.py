@@ -105,8 +105,8 @@ def oneXpNoRenderWithDump(env,envname,learner,timeHorizon):
 
         if done:
             print("Episode finished after {} timesteps".format(t + 1))
-            observation = env.reset() # converts an episodic MDP into an infinite time horizon MDP
-            #break
+            observation = env.reset()  # converts an episodic MDP into an infinite time horizon MDP
+            # break
 
     filename = "results/cumMeans_" + envname + "_" + learner.name() + "_" + str(timeHorizon) +"_" + str(time.time())
     file =  open(filename,'wb')
@@ -430,13 +430,13 @@ def demo_animate():
 #######################
 # Animate a few MDPs:
 #######################
-# demo_animate()
+demo_animate()
 
 
 #######################
 # Running a full example on a very short horizon:
 #######################
-run_large_exp('riversail', timeHorizon=1000, nbReplicates=5)
+# run_large_exp('riversail', timeHorizon=1000, nbReplicates=5)
 
 # Running a full example:
 # run_large_exp('riversail', timeHorizon=1000000, nbReplicates=50)
