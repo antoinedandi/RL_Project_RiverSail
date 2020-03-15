@@ -6,10 +6,8 @@ import matplotlib.pyplot as plt
 import random
 
 from gym import utils
-from gym.envs.toy_text import discrete
 import environments.discreteMDP
 from gym import Env, spaces
-import string
 from environments.discreteMDP import Dirac
 
 
@@ -29,9 +27,9 @@ def riverSailMap(X):
 
 
 class RiverSail(environments.discreteMDP.DiscreteMDP):
-    metadata = {'render.modes': ['text', 'ansi', 'pylab', 'maze'], 'maps': ['random', '2-room', '4-room']}
+    metadata = {'render.modes': ['maze']}
 
-    def __init__(self, sizeX, wind=0.3, initialSingleStateDistribution=False, seed=None):
+    def __init__(self, sizeX, wind=0.3, seed=None):
         """
 
         :param sizeX: length of the 2-d grid
@@ -53,12 +51,12 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
         self.nameActions = ["up", "right", "down", "left"]
 
         self.seed(seed)
-        self.initializedRender = False  # TODO : is this useful ??
+        self.initializedRender = False
 
         # Wind is chosen randomly among the 8 possible directions
         self.directions = ['up', 'up_right', 'right', 'down_right', 'down', 'down_left', 'left', 'up_left', 'no_wind']
 
-        # define stochastic transitions
+        # define stochastic transitions of the wind effect
         self.wind_direction = random.choice(range(len(self.directions)))
         self.massmap = [0., 0., 0., 0., 0., 0., 0., 0., 1 - self.wind]  # u_ ur _r dr d_ dl _l ul stay
         self.massmap[self.wind_direction] += self.wind
@@ -78,7 +76,8 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
                 else:
                     self.revmapping.append((int)(-1))
 
-        # print(self.revmapping)
+        self.classes = self.getClasses()
+
         self.nS = len(self.mapping)
 
         self.action_space = spaces.Discrete(self.nA)
@@ -87,16 +86,11 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
         # Define the state that will lead to a reward
         self.goalstates = self.makeGoalStates()
 
-        if (initialSingleStateDistribution):
-            isd = self.makeInitialSingleStateDistribution()
-        else:
-            isd = self.makeInitialDistribution(self.maze)  # TODO : get rid of that
-        P = self.makeTransition(isd)
-        R = self.makeRewards()
+        self.isd = self.makeInitialSingleStateDistribution()
 
-        self.P = P
-        self.R = R
-        self.isd = isd
+        self.P = self.makeTransition(self.isd)
+        self.R = self.makeRewards()
+        self.sigma = self.getSigma()
         self.lastaction = None  # for rendering
         self.lastreward = 0.  # for rendering
 
@@ -140,6 +134,68 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
         self.lastaction = None
         return self.s
 
+    def getClasses(self):
+
+        # There are 20 equivalence classes for RiverSail env as shown on the report
+
+        classes = []
+
+        state_0 = [self.to_s([0, 0]), self.to_s([1, 0]), self.to_s([2, 0]),
+                   self.to_s([0, self.sizeX-1]), self.to_s([2, self.sizeX-1])]
+
+        state_1 = [self.to_s([1, self.sizeX-1])]
+
+        states_top = [self.to_s([0, i]) for i in range(self.sizeX - 1) if (0 < i < self.sizeX - 1)]
+        states_mid = [self.to_s([1, i]) for i in range(self.sizeX - 1) if (0 < i < self.sizeX - 1)]
+        states_low = [self.to_s([2, i]) for i in range(self.sizeX - 1) if (0 < i < self.sizeX - 1)]
+
+        # extremities classes
+        classes.append([(s, a) for s in state_0 for a in range(self.nA)])
+        classes.append([(s, a) for s in state_1 for a in range(self.nA)])
+        # top row classes
+        classes.append([(s, 0) for s in states_top])
+        classes.append([(s, 1) for s in states_top if (self.from_s(s)[1] < self.sizeX - 2)])
+        classes.append([(s, 2) for s in states_top])
+        classes.append([(s, 3) for s in states_top if (self.from_s(s)[1] > 1)])
+        # middle row classes
+        classes.append([(s, 0) for s in states_mid])
+        classes.append([(s, 1) for s in states_mid if (self.from_s(s)[1] < self.sizeX - 2)])
+        classes.append([(s, 2) for s in states_mid])
+        classes.append([(s, 3) for s in states_mid if (self.from_s(s)[1] > 1)])
+        # bottom row classes
+        classes.append([(s, 0) for s in states_low])
+        classes.append([(s, 1) for s in states_low if (self.from_s(s)[1] < self.sizeX - 2)])
+        classes.append([(s, 2) for s in states_low])
+        classes.append([(s, 3) for s in states_low if (self.from_s(s)[1] > 1)])
+        # other classes
+        classes.append([(s, 3) for s in states_top if (self.from_s(s)[1] == 1)])
+        classes.append([(s, 3) for s in states_mid if (self.from_s(s)[1] == 1)])
+        classes.append([(s, 3) for s in states_low if (self.from_s(s)[1] == 1)])
+        classes.append([(s, 1) for s in states_top if (self.from_s(s)[1] == self.sizeX - 2)])
+        classes.append([(s, 1) for s in states_mid if (self.from_s(s)[1] == self.sizeX - 2)])
+        classes.append([(s, 1) for s in states_low if (self.from_s(s)[1] == self.sizeX - 2)])
+
+        return classes
+
+    def getSigma(self):
+        # shape of sigma : nS * nA * nS
+        P = self.P
+        sigma = np.zeros((3 * self.sizeX, self.nA, 3 * self.sizeX), dtype=int)
+
+        for s in range(self.nS):
+            for a in range(self.nA):
+                temp_1 = [y[1] for x, y in sorted(enumerate(P[s][a]), key=lambda x: x[1][0], reverse=True) if y[0] > 0.0]
+                temp_2 = []
+                for v in temp_1:
+                    if v not in temp_2:
+                        temp_2.append(v)
+                for i in range(self.nS):
+                    if i not in temp_2:
+                        temp_2.append(i)
+                sigma[s, a] = np.array(temp_2)
+
+        return sigma
+
     def makeGoalStates(self):
         goalstates = []
         s = [1, self.sizeX - 1]
@@ -161,24 +217,17 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
         self.massmap[self.wind_direction] += self.wind
         self.P = self.makeTransition(self.isd)
         self.R = self.makeRewards()
-
-    def makeInitialDistribution(self, maze):
-        isd = np.ones(self.nS)
-        for g in self.goalstates:
-            isd[g] = 0
-            # isd = np.array(maze == 1.).astype('float64').ravel()
-        isd /= isd.sum()
-        return isd
+        self.sigma = self.getSigma()
 
     def compose_state_action(self, s, a):
         X = self.sizeX
         Y = self.sizeY
         y, x = s
         # get neighbouring states corresponding to the actions
-        us = [max((y - 1), 0), x % X]  # up
-        rs = [y % Y, min(x + 1, X - 1)]  # right
-        ds = [min((y + 1), Y - 1), x % X]  # down
-        ls = [y % Y, max(x - 1, 0)]  # left
+        us = [max((y - 1), 0), x % X]         # up
+        rs = [y % Y, min(x + 1, X - 1)]       # right
+        ds = [min((y + 1), Y - 1), x % X]     # down
+        ls = [y % Y, max(x - 1, 0)]           # left
         states = [us, rs, ds, ls]
         return states[a]
 
@@ -205,15 +254,15 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
                             li.append((initialstatedistribution[ns], ns, False))
             else:
                 # Get neighbouring states
-                u_ = [max((y - 1), 0), x % X]  # up
-                ur = [max((y - 1), 0), min(x + 1, X - 1)]  # up right
-                _r = [y % Y, min(x + 1, X - 1)]  # right
-                dr = [min((y + 1), Y - 1), min(x + 1, X - 1)]  # down right
-                d_ = [min((y + 1), Y - 1), x % X]  # down
-                dl = [min((y + 1), Y - 1), max(x - 1, 0)]  # down left
-                _l = [y % Y, max(x - 1, 0)]  # left
-                ul = [max((y - 1), 0), max(x - 1, 0)]  # up left
-                ss = [y % Y, x % X]  # stay
+                u_ = [max((y - 1), 0), x % X]                    # up
+                ur = [max((y - 1), 0), min(x + 1, X - 1)]        # up right
+                _r = [y % Y, min(x + 1, X - 1)]                  # right
+                dr = [min((y + 1), Y - 1), min(x + 1, X - 1)]    # down right
+                d_ = [min((y + 1), Y - 1), x % X]                # down
+                dl = [min((y + 1), Y - 1), max(x - 1, 0)]        # down left
+                _l = [y % Y, max(x - 1, 0)]                      # left
+                ul = [max((y - 1), 0), max(x - 1, 0)]            # up left
+                ss = [y % Y, x % X]                              # stay
                 for a in range(self.nA):
                     li = P[s][a]
                     li.append((self.massmap[0], self.revmapping[self.to_s(self.compose_state_action(u_, a))], False))
