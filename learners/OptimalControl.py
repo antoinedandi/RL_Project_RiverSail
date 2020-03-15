@@ -11,7 +11,7 @@ def build_opti(name, env, nS, nA):
     elif ("RiverSwim" in name):
         return Opti_swimmer(env)
     else:
-        return Opti_controller(env, name, nS, nA)
+        return Opti_controller(env, nS, nA)
 
 
 
@@ -49,40 +49,13 @@ class Opti_controller:
                     self.transitions[s, a], self.meanrewards[s, a] = self.extractRewardsAndTransitions(s, a)
                     self.policy[s, a] = 1. / self.nA
 
-        self.policy = np.zeros((self.nS, self.nA))
-
-        # Writing estimate of optimal policy for riversail
-        # First row
-        self.policy[0*self.env.sizeX] += 0.25
-        self.policy[1+0*self.env.sizeX, 3] += 1.
-        for i in range(2, self.env.sizeX-2):
-            self.policy[i, 1] += 1.
-        self.policy[self.env.sizeX-2, 2] += 1.
-        self.policy[self.env.sizeX-1] += 0.25
-
-        # Middle row
-        self.policy[1*self.env.sizeX] += 0.25
-        self.policy[1+1*self.env.sizeX, 3] += 1.
-        for i in range(2, self.env.sizeX - 2):
-            self.policy[i + self.env.sizeX, 1] += 1.
-        self.policy[2*self.env.sizeX - 2, 1] += 1.
-        self.policy[2*self.env.sizeX - 1] += 0.25
-
-        # Bottom row
-        self.policy[2*self.env.sizeX] += 0.25
-        self.policy[1+2*self.env.sizeX, 3] += 1.
-        for i in range(2, self.env.sizeX - 2):
-            self.policy[i + 2*self.env.sizeX, 1] += 1.
-        self.policy[3*self.env.sizeX - 2, 0] += 1.
-        self.policy[3*self.env.sizeX - 1] += 0.25
-
-        # self.VI(epsilon=0.0000001, max_iter=100000)
+        self.VI(epsilon=0.0000001, max_iter=100000)
 
 
     def extractRewardsAndTransitions(self,s,a):
         transition = np.zeros(self.nS)
         reward = 0.
-        for c in self.env.P[s][a]: # c= proba, nexstate, reward, done
+        for c in self.env.P[s][a]: #c= proba, nexstate, reward, done
             transition[c[1]]=c[0]
             reward = c[2]
         return transition, reward
@@ -111,7 +84,7 @@ class Opti_controller:
                 for a in range(self.nA):
                     temp[a] = self.meanrewards[s, a] + 0.999 * sum([u0[ns] * self.transitions[s, a, ns] for ns in range(self.nS)])
                 (u1[s], choice) = allmax(temp)
-                self.policy[s] = [ 1./len(choice) if x in choice else 0 for x in range(self.nA) ]
+                self.policy[s]= [ 1./len(choice) if x in choice else 0 for x in range(self.nA) ]
             diff = [abs(x - y) for (x, y) in zip(u1, u0)]
             if (max(diff) - min(diff)) < epsilon:
                 self.u = u1-min(u1)
@@ -125,8 +98,6 @@ class Opti_controller:
                 u0 = u1 - min(u1)
                 u1 = np.zeros(self.nS)
                 itera += 1
-
-
 
 
 
