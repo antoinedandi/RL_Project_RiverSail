@@ -80,12 +80,12 @@ class C_UCRL2:
 
     # Computing the maximum proba in the Extended Value Iteration for given vlass c.
     def class_max_proba(self, p_estimate, sorted_indices, c):
-        min1 = min([1, p_estimate[sorted_indices[-1]] + (self.class_p_distances[c] / 2)])
+        min1 = min([1, p_estimate[c, sorted_indices[-1]] + (self.class_p_distances[c] / 2)])
         max_p = np.zeros(self.nS)
         if min1 == 1:
             max_p[sorted_indices[-1]] = 1
         else:
-            max_p = cp.deepcopy(p_estimate)
+            max_p = cp.deepcopy(p_estimate[c])
             max_p[sorted_indices[-1]] += self.class_p_distances[c] / 2
             l = 0
             while sum(max_p) > 1:
@@ -106,8 +106,7 @@ class C_UCRL2:
                 temp = np.zeros(self.nA)
                 for a in range(self.nA):
                     c = self.stateToClasses[s, a]
-                    invSigma = np.argsort(self.sigma[s, a])
-                    max_p = self.class_max_proba(p_estimate[c, invSigma], sorted_indices, c)
+                    max_p = self.class_max_proba(p_estimate, sorted_indices, c)
                     temp[a] = min((1, r_estimate[c] + self.class_r_distances[c])) + sum(
                         [u * p for (u, p) in zip(u0, max_p)])
                 # This implements a tie-breaking rule by choosing:  Uniform(Argmmin(Nk))
