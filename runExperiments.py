@@ -78,7 +78,7 @@ def oneXpNoRender(env,envname,learner,timeHorizon):
     return cummeans #cumrewards,cummeans
 
 
-def oneXpNoRenderWithDump(env, envname, learner, timeHorizon):
+def oneXpNoRenderWithDump(env,envname,learner,timeHorizon):
     observation = env.reset()
     learner.reset(observation)
     cumreward = 0.
@@ -129,6 +129,27 @@ def run_large_exp(envName = "riverSwim", timeHorizon=1000, nbReplicates=100):
 
     envOpt = bW.makeWorld(envName)
 
+    # TODO ca on s'en balec
+    # if ("2-room" in envName):
+    #      opti_learner = opt.Opti_911_2room(envOpt.env)
+    #      # opttimeHorizon = min(max((10000, timeHorizon)), 10 ** 8)
+    #      # optl = le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05)
+    #      # cumReward_opti = oneXpNoRender(envOpt, envName, optl, opttimeHorizon)
+    #      # print(optl.policy)
+    #      # opti_learner = opt.Opti_learner(envOpt.env, envOpt.observation_space.n, envOpt.action_space.n)
+    #      # #print(opti_learner.policy)
+    #      # opti_learner.policy = optl.policy
+    # elif ("4-room" in envName):
+    #      opti_learner = opt.Opti_77_4room(envOpt.env)
+    # #     opttimeHorizon = min(max((10000, timeHorizon)), 10 ** 8)
+    # #     optl = le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05)
+    # #     cumReward_opti = oneXpNoRender(envOpt, envName,optl, opttimeHorizon)
+    # #     print(optl.policy)
+    # #     opti_learner = opt.Opti_learner(envOpt.env, envOpt.observation_space.n, envOpt.action_space.n)
+    # #     #print(opti_learner.policy)
+    # #     opti_learner.policy = optl.policy
+    # else:
+
     print("Computing an estimate of the optimal policy (for regret)...")
     opti_learner = opt.Opti_controller(envOpt.env, envOpt.observation_space.n, envOpt.action_space.n)
     print(opti_learner.policy)
@@ -142,11 +163,10 @@ def run_large_exp(envName = "riverSwim", timeHorizon=1000, nbReplicates=100):
 
     learners = []
 
-    learners.append(ucrl.C_UCRL2(envOpt.observation_space.n, envOpt.action_space.n, envOpt.env.classes, envOpt.env.sigma, delta=0.05))
     learners.append(ucrl.UCRL2(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
-    # learners.append(ucrlb.UCRL2B(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
+    learners.append(ucrlb.UCRL2B(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
     # learners.append(klucrl.KL_UCRL(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
-    # learners.append(le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
+    learners.append(le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
     # learners.append(lr.Random(envOpt))
 
 
@@ -389,8 +409,16 @@ def demo_animate():
     env = bW.makeWorld(envName)
     # learner = lr.Random(env)
     # learner = lh.Human(env)
+    sigma = np.zeros((env.observation_space.n, env.action_space.n, env.observation_space.n), dtype=int)
+    classes = [[] for i in range(9)]
     
-    learner = ucrl.C_UCRL2(env.observation_space.n, env.action_space.n, env.env.classes, env.env.sigma, delta=0.05)
+    for s in range(env.observation_space.n):
+        for a in range(env.action_space.n):
+            sigma[s, a] = np.arange(env.observation_space.n)
+            i = np.random.randint(9)
+            classes[i].append((s, a))
+    
+    learner = ucrl.C_UCRL2_(env.observation_space.n, env.action_space.n, classes, sigma, delta=0.05)
     animate(env, learner, 100, 'maze')
     #
     # testName = 'random10'
@@ -411,13 +439,13 @@ def demo_animate():
 #######################
 # Animate a few MDPs:
 #######################
-# demo_animate()
+demo_animate()
 
 
 #######################
 # Running a full example on a very short horizon:
 #######################
-run_large_exp('riversail', timeHorizon=100, nbReplicates=4)
+# run_large_exp('riversail', timeHorizon=1000, nbReplicates=5)
 
 # Running a full example:
 # run_large_exp('riversail', timeHorizon=1000000, nbReplicates=50)
