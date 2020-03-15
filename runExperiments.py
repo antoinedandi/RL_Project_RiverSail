@@ -409,7 +409,16 @@ def demo_animate():
     env = bW.makeWorld(envName)
     # learner = lr.Random(env)
     # learner = lh.Human(env)
-    learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
+    sigma = np.zeros((env.observation_space.n, env.action_space.n, env.observation_space.n), dtype=int)
+    classes = [[] for i in range(9)]
+    
+    for s in range(env.observation_space.n):
+        for a in range(env.action_space.n):
+            sigma[s, a] = np.arange(env.observation_space.n)
+            i = np.random.randint(9)
+            classes[i].append((s, a))
+    
+    learner = ucrl.C_UCRL2_(env.observation_space.n, env.action_space.n, classes, sigma, delta=0.05)
     animate(env, learner, 100, 'maze')
     #
     # testName = 'random10'
