@@ -3,9 +3,7 @@ import learners.OptimalControl  as opt
 import learners.Random as lr
 import learners.Human as lh
 import learners.UCRL2 as ucrl
-import learners.KL_UCRL as klucrl
-import learners.UCRL2B as ucrlb
-import learners.UCRL3 as le
+import learners.C_UCRL2 as c_ucrl
 
 import time
 import numpy as np
@@ -144,12 +142,8 @@ def run_large_exp(envName = "riverSwim", timeHorizon=1000, nbReplicates=100):
 
     learners = []
 
-    learners.append(ucrl.C_UCRL2(envOpt.observation_space.n, envOpt.action_space.n, envOpt, envOpt.env.classes, delta=0.05))
     learners.append(ucrl.UCRL2(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
-    # learners.append(ucrlb.UCRL2B(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
-    # learners.append(klucrl.KL_UCRL(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
-    # learners.append(le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
-    # learners.append(lr.Random(envOpt))
+    learners.append(c_ucrl.C_UCRL2(envOpt.observation_space.n, envOpt.action_space.n, envOpt, envOpt.env.classes, delta=0.05))
 
 
     for learner in learners:
@@ -309,9 +303,7 @@ def plot_results_from_dump(envName, tmax,tplot):
 
     #Declare list of algorithms (only to get their names):
     learners.append(ucrl.UCRL2(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
-    learners.append(ucrlb.UCRL2B(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
-    learners.append(klucrl.KL_UCRL(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
-    learners.append(le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
+    learners.append(c_ucrl.C_UCRL2(envOpt.observation_space.n, envOpt.action_space.n, envOpt, envOpt.env.classes, delta=0.05))
 
     for learner in learners:
         names.append(learner.name())
@@ -372,72 +364,25 @@ def plotCumulativeRegretsFromDump(names,envName,median, quantile1, quantile2, ti
 
 ##############
 def demo_animate():
-    # testName = 'riverSwim6'
-    # envName = (bW.registerWorlds[testName])(0)
-    # env = bW.makeWorld(envName)
-    # # learner = lr.Random(env)
-    # learner = lh.Human(env)
-    # # learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
-    # animate(env, learner, 100, 'pylab')
-    #
-    # testName = 'random_grid'
-    # envName = (bW.registerWorlds[testName])(0)
-    # env = bW.makeWorld(envName)
-    # # learner = lr.Random(env)
-    # learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
-    # animate(env, learner, 50, 'maze')
-    #
-    testName = 'riversail'
+    testName = 'riversail_10'
     envName = (bW.registerWorlds[testName])(0)
     env = bW.makeWorld(envName)
+    # -> Choose which learner to use:
     # learner = lr.Random(env)
     # learner = lh.Human(env)
-    
-    learner = ucrl.C_UCRL2(env.observation_space.n, env.action_space.n, env.env.classes, env.env.sigma, delta=0.05)
-    animate(env, learner, 100, 'maze')
-    #
-    # testName = 'random10'
-    # envName = (bW.registerWorlds[testName])(0)
-    # env = bW.makeWorld(envName)
-    # # learner = lr.Random(env)
-    # learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
-    # animate(env, learner, 50, 'pylab')
-    #
-    #
-    # testName = 'random100'
-    # envName = (bW.registerWorlds[testName])(0)
-    # env = bW.makeWorld(envName)
-    # learner = lr.Random(env)
-    # # learner = le.UCRL3_lazy(env.observation_space.n, env.action_space.n, delta=0.05)
-    # animate(env, learner, 100, 'text')
+    learner = ucrl.UCRL2(env.observation_space.n, env.action_space.n, delta=0.05)
+    # learner = c_ucrl.C_UCRL2(env.observation_space.n, env.action_space.n, env, env.env.classes, delta=0.05)
+    animate(env, learner, 50, 'maze')
 
 #######################
-# Animate a few MDPs:
+# Animate the RiverSail MDPs:
 #######################
-# demo_animate()
+demo_animate()
 
 
 #######################
-# Running a full example on a very short horizon:
-#######################
-run_large_exp('riversail', timeHorizon=1000, nbReplicates=4)
-
-
 # Running a full example:
-# run_large_exp('riversail', timeHorizon=1000000, nbReplicates=50)
-# run_large_exp('riverSwim6', timeHorizon=1000000, nbReplicates=50)
-# run_large_exp('2-room', timeHorizon=10000000, nbReplicates=50)
-# run_large_exp('4-room', timeHorizon=10000000, nbReplicates=50)
-# run_large_exp('random100', timeHorizon=10000000, nbReplicates=50)
-
-
 #######################
-# Assuming data has been generated in previous runs, dumped in results/ in following files:
-#cumRegret_Gridworld-2-room-v0_UCRL2_10000000
-#cumRegret_Gridworld-2-room-v0_KL-UCRL_10000000
-#cumRegret_Gridworld-2-room-v0_UCRL2B_10000000
-#cumRegret_Gridworld-2-room-v0_UCRL3_10000000
-#Choose tplot<=tmax=10000000
-#######################
-# tplot=10000000
-# plot_results_from_dump('4-room',tmax=10000000,tplot=tplot)
+# run_large_exp('riversail_5', timeHorizon=10000, nbReplicates=4)
+# run_large_exp('riversail_10', timeHorizon=10000, nbReplicates=4)
+# run_large_exp('riversail_20', timeHorizon=10000, nbReplicates=4)

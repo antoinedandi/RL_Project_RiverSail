@@ -31,7 +31,6 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
 
     def __init__(self, sizeX, wind=0.3, seed=None):
         """
-
         :param sizeX: length of the 2-d grid
         :param wind: real-value in [0,1], wind force - makes transitions more (1) or less (0) stochastic.
         :param rewardStd: standard deviation of rewards.
