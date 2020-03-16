@@ -144,20 +144,9 @@ def run_large_exp(envName = "riverSwim", timeHorizon=1000, nbReplicates=100):
 
     learners = []
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     learners.append(ucrl.C_UCRL2(envOpt.observation_space.n, envOpt.action_space.n, envOpt, envOpt.env.classes, delta=0.05))
     learners.append(ucrl.UCRL2(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
     # learners.append(ucrlb.UCRL2B(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
-=======
-    learners.append(ucrl.UCRL2(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
-    learners.append(ucrlb.UCRL2B(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
->>>>>>> d3474775ebea981ce8b9c0a9bd41f6277a5289a2
-=======
-    learners.append(ucrl.C_UCRL2(envOpt.observation_space.n, envOpt.action_space.n, envOpt.env.classes, envOpt.env.sigma, delta=0.05))
-    learners.append(ucrl.UCRL2(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
-    # learners.append(ucrlb.UCRL2B(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
->>>>>>> e5328a96c9561c0a62c6f282b3592c6b1d12caba
     # learners.append(klucrl.KL_UCRL(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
     # learners.append(le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
     # learners.append(lr.Random(envOpt))
@@ -431,15 +420,8 @@ def demo_animate():
 #######################
 # Running a full example on a very short horizon:
 #######################
-<<<<<<< HEAD
-<<<<<<< HEAD
-run_large_exp('riversail', timeHorizon=100000, nbReplicates=4)
-=======
-# run_large_exp('riversail', timeHorizon=1000, nbReplicates=5)
->>>>>>> d3474775ebea981ce8b9c0a9bd41f6277a5289a2
-=======
-run_large_exp('riversail', timeHorizon=100, nbReplicates=4)
->>>>>>> e5328a96c9561c0a62c6f282b3592c6b1d12caba
+run_large_exp('riversail', timeHorizon=1000, nbReplicates=4)
+
 
 # Running a full example:
 # run_large_exp('riversail', timeHorizon=1000000, nbReplicates=50)

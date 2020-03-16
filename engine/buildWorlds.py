@@ -73,7 +73,7 @@ registerWorlds = {
     "random_grid" : lambda x: registerGridworld(sizeX=8, sizeY=5, map_name="random", rewardStd=0.01, initialSingleStateDistribution=True),
     "2-room" : lambda x: registerGridworld(sizeX=9, sizeY=11, map_name="2-room", rewardStd=0.0, initialSingleStateDistribution=True),
     "4-room" : lambda x: registerGridworld(sizeX=7, sizeY=7, map_name="4-room", rewardStd=0.0, initialSingleStateDistribution=True),
-    "riversail" : lambda x: registerRiverSail(sizeX=20)
+    "riversail" : lambda x: registerRiverSail(sizeX=10)
 }
 
 

@@ -4,17 +4,8 @@ import copy as cp
 from learners.utils import *
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 class C_UCRL2:
     def __init__(self, nS, nA, env, classes, delta):
-=======
-class C_UCRL2_:
-=======
-class C_UCRL2:
->>>>>>> e5328a96c9561c0a62c6f282b3592c6b1d12caba
-    def __init__(self, nS, nA, classes, sigma, delta):
->>>>>>> d3474775ebea981ce8b9c0a9bd41f6277a5289a2
         """
         Vanilla UCRL2 based on "Jaksch, Thomas, Ronald Ortner, and Peter Auer. "Near-optimal regret bounds for reinforcement learning." Journal of Machine Learning Research 11.Apr (2010): 1563-1600."
         :param nS: the number of states
@@ -84,19 +75,11 @@ class C_UCRL2:
     def class_distances(self):
         for c in range(self.nC):
             n = max(self.ClassNk[c], 1)
-<<<<<<< HEAD
+
             self.class_r_distances[c] = np.sqrt(((1 + 1 / n) * np.log(4 * np.sqrt(n + 1) * self.nC / self.delta))/ n)
             self.class_p_distances[c] = np.sqrt((2 * (1 + 1 / n) * np.log(2 * np.sqrt(n + 1) * (2**2 - 2) * self.nC / self.delta))/ n)
             # self.class_p_distances[c] = np.sqrt((2 * (1 + 1 / n) * np.log(2 * np.sqrt(n + 1) * (2 ** self.nC - 2) * self.nC / self.delta)) / n)
 
-=======
-            self.class_r_distances[c] = np.sqrt(((1 + 1 / n) *  np.log(4 * np.sqrt(n + 1) * self.nC / self.delta))/ n)
-            self.class_p_distances[c] = np.sqrt((2 * (1 + 1 / n) *  np.log(2 * np.sqrt(n + 1) * (2**self.nC - 2) * self.nC / self.delta))/ n)
-<<<<<<< HEAD
->>>>>>> d3474775ebea981ce8b9c0a9bd41f6277a5289a2
-=======
-
->>>>>>> e5328a96c9561c0a62c6f282b3592c6b1d12caba
     # Computing the maximum proba in the Extended Value Iteration for given vlass c.
     def class_max_proba(self, p_estimate, sorted_indices, c):
         min1 = min([1, p_estimate[sorted_indices[-1]] + (self.class_p_distances[c] / 2)])
@@ -125,17 +108,8 @@ class C_UCRL2:
                 temp = np.zeros(self.nA)
                 for a in range(self.nA):
                     c = self.stateToClasses[s, a]
-<<<<<<< HEAD
-<<<<<<< HEAD
                     invSigma = np.argsort(self.env.sigma[s, a])
                     max_p = self.class_max_proba(p_estimate[c, invSigma], sorted_indices, c)
-=======
-                    max_p = self.class_max_proba(p_estimate, sorted_indices, c)
->>>>>>> d3474775ebea981ce8b9c0a9bd41f6277a5289a2
-=======
-                    invSigma = np.argsort(self.sigma[s, a])
-                    max_p = self.class_max_proba(p_estimate[c, invSigma], sorted_indices, c)
->>>>>>> e5328a96c9561c0a62c6f282b3592c6b1d12caba
                     temp[a] = min((1, r_estimate[c] + self.class_r_distances[c])) + sum(
                         [u * p for (u, p) in zip(u0, max_p)])
                 # This implements a tie-breaking rule by choosing:  Uniform(Argmmin(Nk))
