@@ -55,11 +55,11 @@ def registerThreeState(delta = 0.005, max_steps=np.infty, reward_threshold=np.in
 
 def registerRiverSail(sizeX=10, initialSingleStateDistribution=False, max_steps=np.infty, reward_threshold=np.infty):
     register(
-        id='RiverSail-'+'-v0',
+        id='RiverSail-'+'-v0' + str(np.random.randint(75)),
         entry_point='environments.riversail:RiverSail',
         max_episode_steps=max_steps,
         reward_threshold=reward_threshold,
-        kwargs={'sizeX': sizeX}
+        kwargs={'sizeX': sizeX, 'initialSingleStateDistribution':initialSingleStateDistribution}
     )
     return 'RiverSail-'+'-v0'
 
