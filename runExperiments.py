@@ -56,6 +56,7 @@ def oneXpNoRender(env,envname,learner,timeHorizon):
         state = observation
         action = learner.play(state)  # Get action
         observation, reward, done, info = env.step(action)
+        learner.env = env
         if ('Taxi' in envname):
             reward = (reward+10.)/30.
         learner.update(state, action, reward, observation)  # Update learners
@@ -70,12 +71,12 @@ def oneXpNoRender(env,envname,learner,timeHorizon):
 
         if done:
             print("Episode finished after {} timesteps".format(t + 1))
-            observation=env.reset()
-            #break
+            observation = env.reset()
+            # break
 
     print("Cumreward: " + str(cumreward))
     print("Cummean: " + str(cummean))
-    return cummeans #cumrewards,cummeans
+    return cummeans  # cumrewards,cummeans
 
 
 def oneXpNoRenderWithDump(env, envname, learner, timeHorizon):
@@ -91,6 +92,7 @@ def oneXpNoRenderWithDump(env, envname, learner, timeHorizon):
         state = observation
         action = learner.play(state)  # Get action
         observation, reward, done, info = env.step(action)
+        learner.env = env
         if ('Taxi' in envname): # Need to rescale the rewards
             reward = (reward+10.)/30.
         learner.update(state, action, reward, observation)  # Update learners
@@ -142,8 +144,8 @@ def run_large_exp(envName = "riverSwim", timeHorizon=1000, nbReplicates=100):
 
     learners = []
 
-    learners.append(ucrl.C_UCRL2(envOpt.observation_space.n, envOpt.action_space.n, envOpt.env.classes, envOpt.env.sigma, delta=0.05))
-    learners.append(ucrl.UCRL2(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
+    learners.append(ucrl.C_UCRL2(envOpt.observation_space.n, envOpt.action_space.n, envOpt, envOpt.env.classes, delta=0.05))
+    learners.append(ucrl.UCRL2(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
     # learners.append(ucrlb.UCRL2B(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
     # learners.append(klucrl.KL_UCRL(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05 ))
     # learners.append(le.UCRL3_lazy(envOpt.observation_space.n, envOpt.action_space.n, delta=0.05))
@@ -165,6 +167,7 @@ def run_large_exp(envName = "riverSwim", timeHorizon=1000, nbReplicates=100):
     filename = "results/cumMeans_" + envName + "_"+opti_learner.name()+"_" + str(timeHorizon) + "_"+str(time.time())
     file = open(filename, 'wb')
     pickle.dump(opti_reward, file)
+    file.close()
     dump_cumRewardsAlgos.append(filename)
 
     [print(str(names[i]), "average runtime is ", meanelapsedtimes[i] ) for i in range(len(names))]
@@ -250,7 +253,7 @@ def analyzeResults(names, dump_cumulativerewards_, timeHorizon, envName =""):
 
     # Downsample the times, espeiclaly incase timeHorizon is huge.
     skip = max(1, (timeHorizon // 1000))
-    times = [t for t in range(0,timeHorizon,skip)]
+    times = [t for t in range(0, timeHorizon, skip)]
 
     for j in range(nbAlgs):
         data_j = []
@@ -417,7 +420,7 @@ def demo_animate():
 #######################
 # Running a full example on a very short horizon:
 #######################
-run_large_exp('riversail', timeHorizon=100, nbReplicates=4)
+run_large_exp('riversail', timeHorizon=100000, nbReplicates=4)
 
 # Running a full example:
 # run_large_exp('riversail', timeHorizon=1000000, nbReplicates=50)

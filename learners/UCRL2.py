@@ -5,7 +5,7 @@ from learners.utils import *
 
 
 class C_UCRL2:
-    def __init__(self, nS, nA, classes, sigma, delta):
+    def __init__(self, nS, nA, env, classes, delta):
         """
         Vanilla UCRL2 based on "Jaksch, Thomas, Ronald Ortner, and Peter Auer. "Near-optimal regret bounds for reinforcement learning." Journal of Machine Learning Research 11.Apr (2010): 1563-1600."
         :param nS: the number of states
@@ -18,8 +18,8 @@ class C_UCRL2:
         
         self.t = 1
         self.delta = delta
-        
-        self.sigma = sigma
+
+        self.env = env.env
         self.classes = classes
         self.stateToClasses = np.zeros((self.nS, self.nA), dtype=int)
         for i, c in enumerate(classes):
@@ -75,8 +75,9 @@ class C_UCRL2:
     def class_distances(self):
         for c in range(self.nC):
             n = max(self.ClassNk[c], 1)
-            self.class_r_distances[c] = np.sqrt(((1 + 1 / n) *  np.log(4 * np.sqrt(n + 1) * self.nC / self.delta))/ n)
-            self.class_p_distances[c] = np.sqrt((2 * (1 + 1 / n) *  np.log(2 * np.sqrt(n + 1) * (2**self.nC - 2) * self.nC / self.delta))/ n)
+            self.class_r_distances[c] = np.sqrt(((1 + 1 / n) * np.log(4 * np.sqrt(n + 1) * self.nC / self.delta))/ n)
+            self.class_p_distances[c] = np.sqrt((2 * (1 + 1 / n) * np.log(2 * np.sqrt(n + 1) * (2**2 - 2) * self.nC / self.delta))/ n)
+            # self.class_p_distances[c] = np.sqrt((2 * (1 + 1 / n) * np.log(2 * np.sqrt(n + 1) * (2 ** self.nC - 2) * self.nC / self.delta)) / n)
 
     # Computing the maximum proba in the Extended Value Iteration for given vlass c.
     def class_max_proba(self, p_estimate, sorted_indices, c):
@@ -106,7 +107,7 @@ class C_UCRL2:
                 temp = np.zeros(self.nA)
                 for a in range(self.nA):
                     c = self.stateToClasses[s, a]
-                    invSigma = np.argsort(self.sigma[s, a])
+                    invSigma = np.argsort(self.env.sigma[s, a])
                     max_p = self.class_max_proba(p_estimate[c, invSigma], sorted_indices, c)
                     temp[a] = min((1, r_estimate[c] + self.class_r_distances[c])) + sum(
                         [u * p for (u, p) in zip(u0, max_p)])
@@ -143,7 +144,7 @@ class C_UCRL2:
         for c in range(self.nC):
             for s, a in self.classes[c]:
                 class_r_estimate[c] += self.Rk[s, a] / max(1, self.ClassNk[c])
-                class_p_estimate[c] += self.Pk[s, a, self.sigma[s, a]]  / max(1, self.ClassNk[c])
+                class_p_estimate[c] += self.Pk[s, a, self.env.sigma[s, a]]  / max(1, self.ClassNk[c])
         self.class_distances()
         self.class_EVI(class_r_estimate, class_p_estimate, epsilon=1. / max(1, self.t))
 
@@ -202,9 +203,9 @@ class UCRL2:
         self.t = 1
         self.delta = delta
 
-        self.observations = [[], [], []] # list of the observed (states, actions, rewards) ordered by time
-        self.vk = np.zeros((self.nS, self.nA)) #the state-action count for the current episode k
-        self.Nk = np.zeros((self.nS, self.nA)) #the state-action count prior to episode k
+        self.observations = [[], [], []]  # list of the observed (states, actions, rewards) ordered by time
+        self.vk = np.zeros((self.nS, self.nA))  # the state-action count for the current episode k
+        self.Nk = np.zeros((self.nS, self.nA))  # the state-action count prior to episode k
 
         self.r_distances = np.zeros((self.nS, self.nA))
         self.p_distances = np.zeros((self.nS, self.nA))
@@ -213,7 +214,7 @@ class UCRL2:
 
         self.u = np.zeros(self.nS)
         self.span = []
-        self.policy = np.zeros((self.nS, self.nA)) # policy, seen as a stochastic policy here.
+        self.policy = np.zeros((self.nS, self.nA))  # policy, seen as a stochastic policy here.
         for s in range(self.nS):
             for a in range(self.nA):
                 self.policy[s, a] = 1. / self.nA

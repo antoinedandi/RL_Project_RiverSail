@@ -117,6 +117,7 @@ class RiverSail(environments.discreteMDP.DiscreteMDP):
         y, x = self.from_s(self.mapping[self.s])
         if x == 0 or x == X - 1:
             self.change_river_and_wind()
+            # print(self.sigma[7, 1])  # testing
         # Perform step
         transitions = self.P[self.s][a]
         rewarddis = self.R[self.s][a]

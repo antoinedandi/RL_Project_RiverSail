@@ -11,7 +11,7 @@ def build_opti(name, env, nS, nA):
     elif ("RiverSwim" in name):
         return Opti_swimmer(env)
     else:
-        return Opti_controller(env, name, nS, nA)
+        return Opti_controller(env, nS, nA)
 
 
 
